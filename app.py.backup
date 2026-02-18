@@ -1,0 +1,524 @@
+import streamlit as st
+from datetime import datetime
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from chatbot_runner import ChatbotRunner
+
+# Page config
+st.set_page_config(
+    page_title="Smart Inventory AI",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Premium CSS Styling
+st.markdown("""
+<style>
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+    
+    /* Global Styles */
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Main container */
+    .main {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 0;
+    }
+    
+    /* Header */
+    .main-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .main-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        animation: fadeInDown 0.8s ease-out;
+    }
+    
+    .main-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+    }
+    
+    /* Sidebar */
+    .css-1d391kg {
+        background: white;
+        padding: 2rem 1rem;
+    }
+    
+    /* Chat container */
+    .chat-container {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 0 auto;
+        max-width: 1200px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        min-height: 600px;
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    /* Message bubbles */
+    .message {
+        margin-bottom: 1.5rem;
+        animation: slideIn 0.3s ease-out;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .user-message {
+        justify-content: flex-end;
+    }
+    
+    .user-message .message-avatar {
+        order: 2;
+        margin-left: 1rem;
+        margin-right: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .assistant-message .message-avatar {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .message-content {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-radius: 20px;
+        max-width: 70%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    
+    .user-message .message-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .assistant-message .message-content {
+        background: #f8f9fa;
+        color: #333;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.6;
+        margin-top: 0.5rem;
+        display: block;
+    }
+    
+    /* Input area */
+    .stTextInput > div > div > input {
+        border-radius: 25px;
+        border: 2px solid #e0e0e0;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        border-radius: 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Quick action buttons */
+    .quick-btn {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        width: 100%;
+    }
+    
+    .quick-btn:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+        transform: translateX(5px);
+    }
+    
+    /* Cards */
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    
+    .feature-card h3 {
+        color: #667eea;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .feature-card ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .feature-card li {
+        padding: 0.5rem 0;
+        color: #666;
+    }
+    
+    .feature-card li:before {
+        content: "✓ ";
+        color: #667eea;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    
+    /* Info box */
+    .info-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-top: 1rem;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .info-box strong {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* Loading spinner */
+    .stSpinner > div {
+        border-top-color: #667eea !important;
+    }
+    
+    /* Welcome section */
+    .welcome-section {
+        text-align: center;
+        padding: 3rem 2rem;
+        animation: fadeIn 0.8s ease-out;
+    }
+    
+    .welcome-section h2 {
+        color: white;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .welcome-section p {
+        color: rgba(255,255,255,0.9);
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Stats cards */
+    .stat-card {
+        background: rgba(255,255,255,0.95);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card h4 {
+        color: #667eea;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Initialize session state
+if "chatbot" not in st.session_state:
+    st.session_state.chatbot = None
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "owner_id" not in st.session_state:
+    st.session_state.owner_id = None
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = None
+
+# Sidebar
+with st.sidebar:
+    st.markdown("## 🔐 Login Portal")
+    
+    owner_email = st.text_input(
+        "Enter Your Email",
+        value=st.session_state.owner_id or "",
+        placeholder="shop@example.com"
+    )
+    
+    if st.button("🚀 Connect", use_container_width=True):
+        if owner_email:
+            st.session_state.owner_id = owner_email
+            st.session_state.thread_id = f"session-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            st.session_state.chatbot = ChatbotRunner(owner_email, st.session_state.thread_id)
+            st.success(f"✅ Connected!")
+            st.session_state.messages = []
+        else:
+            st.error("⚠️ Please enter your email")
+    
+    if st.session_state.owner_id:
+        st.markdown("---")
+        st.markdown("## ⚡ Quick Actions")
+        
+        quick_actions = {
+            "📦 All Products": "Show me all products",
+            "💰 Today's Sales": "What are today's sales?",
+            "📊 Profit Report": "What's today's profit?",
+            "📈 Top Selling": "Show top selling products",
+            "⚠️ Low Stock Alert": "Which products are low in stock?",
+            "📅 Recent Bills": "Show today's bills",
+            "🏪 Suppliers List": "Show all suppliers",
+            "👥 Customers": "Show all customers",
+        }
+        
+        for label, query in quick_actions.items():
+            if st.button(label, key=label, use_container_width=True):
+                st.session_state.messages.append({
+                    "role": "user",
+                    "content": query,
+                    "timestamp": datetime.now()
+                })
+                with st.spinner("🤔 Processing..."):
+                    response = st.session_state.chatbot.query(query)
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": response,
+                        "timestamp": datetime.now()
+                    })
+                st.rerun()
+        
+        st.markdown("---")
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown(f"""
+        **👤 User:** {st.session_state.owner_id}  
+        **💬 Messages:** {len(st.session_state.messages)}  
+        **🕐 Session:** {st.session_state.thread_id[-6:]}
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        if st.button("🗑️ Clear Chat", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+
+# Main content
+st.markdown("""
+<div class="main-header">
+    <h1>🤖 Smart Inventory AI</h1>
+    <p>Your Intelligent Inventory Management Assistant</p>
+</div>
+""", unsafe_allow_html=True)
+
+if not st.session_state.owner_id:
+    # Welcome screen
+    st.markdown("""
+    <div class="welcome-section">
+        <h2>👋 Welcome to Smart Inventory AI</h2>
+        <p>Manage your inventory with the power of artificial intelligence</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="feature-card">
+            <h3>📦 Products</h3>
+            <ul>
+                <li>Real-time stock tracking</li>
+                <li>Expiry date monitoring</li>
+                <li>Category management</li>
+                <li>Price tracking</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="feature-card">
+            <h3>💰 Sales Analytics</h3>
+            <ul>
+                <li>Daily sales reports</li>
+                <li>Profit calculations</li>
+                <li>Trend analysis</li>
+                <li>Customer insights</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div class="feature-card">
+            <h3>📊 Smart Reports</h3>
+            <ul>
+                <li>Top selling items</li>
+                <li>Low stock alerts</li>
+                <li>Supplier management</li>
+                <li>Bill tracking</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+else:
+    # Chat interface
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    
+    # Display messages
+    for msg in st.session_state.messages:
+        if msg["role"] == "user":
+            st.markdown(f"""
+            <div class="message user-message">
+                <div class="message-content">
+                    {msg["content"]}
+                    <span class="message-time">{msg["timestamp"].strftime("%H:%M")}</span>
+                </div>
+                <div class="message-avatar">👤</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="message assistant-message">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    {msg["content"]}
+                    <span class="message-time">{msg["timestamp"].strftime("%H:%M")}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Input area
+    st.markdown("---")
+    col1, col2 = st.columns([5, 1])
+    
+    with col1:
+        user_input = st.text_input(
+            "Type your message...",
+            placeholder="Ask about products, sales, inventory...",
+            key="user_input",
+            label_visibility="collapsed"
+        )
+    
+    with col2:
+        send_button = st.button("📤 Send", use_container_width=True)
+    
+    if send_button and user_input:
+        st.session_state.messages.append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": datetime.now()
+        })
+        
+        with st.spinner("🤔 Thinking..."):
+            response = st.session_state.chatbot.query(user_input)
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": response,
+                "timestamp": datetime.now()
+            })
+        
+        st.rerun()
+
+# Footer
+st.markdown("""
+<div style="text-align: center; padding: 2rem; color: white;">
+    <p style="opacity: 0.8;">Powered by AI • Made with ❤️ for Smart Businesses</p>
+</div>
+""", unsafe_allow_html=True)
