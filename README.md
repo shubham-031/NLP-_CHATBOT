@@ -276,11 +276,6 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-### Coding Standards
-- Follow PEP 8 style guide for Python code
-- Write docstrings for all functions and classes
-- Add unit tests for new features
-- Update documentation as needed
 
 ## 📝 License
 
@@ -291,20 +286,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **Shubham**
 - GitHub: [@shubham-031](https://github.com/shubham-031)
 
-## 🙏 Acknowledgments
 
-- Thanks to the open-source NLP community
-- Python NLP libraries contributors
-- Everyone who has contributed to this project
-
-## 📞 Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Contact the maintainer
-
----
-
-**Note**: This is an active project under development. Features and documentation are continuously being updated.
 
 Last Updated: 2026-02-18 04:44:58
